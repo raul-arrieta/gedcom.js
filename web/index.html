@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+		<script src='js/gedcom.js'></script>
+		<script>
+
+			/*************************************
+	        /* Handles "parsed" event triggered
+	        /* From Gedcom when .ged file parsing 
+	        /* is finished.
+    	    /*************************************/
+			$(document).unbind("parsed").bind("parsed", function(event, data) { 
+				
+				// received data may contains circular references
+				// will cause error on JSON.stringify:
+				var cache = [];
+				var jsonGedcom = JSON.stringify(data, function(key, value) {
+				    if (typeof value === 'object' && value !== null) {
+				        if (cache.indexOf(value) !== -1) {
+				            // Circular reference found, discard key
+				            return;
+				        }
+				        // Store value in our collection
+				        cache.push(value);
+				    }
+				    return value;
+				});
+				cache = null;
+
+				//add json to body:				
+				$(document.body).append(jsonGedcom);		
+			});
+			
+			Gedcom.parse('Case002-Repositories.ged', function(e) {
+				e.simplify();
+			});
+			
+		</script>
+	</body>
+</html>
